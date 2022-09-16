@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Film Site</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+
+    <div class="films" >
+		
+		<film-card name="tt1211837"></film-card>
+		<film-card name="tt3501632"></film-card>
+		<film-card name="tt0903747"></film-card>
+		<film-card name="tt0903624"></film-card>
+    <film-card name="tt10872600"></film-card>
+    <film-card name="tt8228288"></film-card>
+
+	</div>
+
+	<script>
+        class Repository extends HTMLElement {
+  constructor() {
+    super();
+
+    this.repoDetails = null;
+
+    this.name = this.getAttribute("name");
+    this.endpoint = `http://www.omdbapi.com/?i=${this.name}&apikey=4ef43810`;
+    this.getDetails = this.getDetails.bind(this);
+
+    this.innerHTML = `<h1>Loading</h1>`;
+  }
+
+  async connectedCallback() {
+    let repo = await this.getDetails();
+    this.repoDetails = repo;
+    this.initShadowDom();
+  }
+
+  initShadowDom() {
+    let shadowRoot = this.attachShadow({ mode: "open" });
+    shadowRoot.innerHTML = this.template;
+  }
+
+  get style() {
+    return `
+	<link rel="stylesheet" href="main.css">
+    `;
+  }
+
+  get template() {
+    let repo = this.repoDetails;
+
+    if (repo.message) {
+      return this.style + this.cardError(repo);
+    } else {
+      return this.style + this.cardTemplate(repo);
+    }
+  }
+
+  async getDetails() {
+    return await fetch(this.endpoint, { mode: "cors" }).then(res => res.json());
+  }
+
+  cardTemplate({ Poster,Title, Plot, Runtime, imdbRating }) {
+    return `
+	<div class="main-container">
+			<div class="poster-container">
+				<img src="${Poster}" class="poster" /></a>
+			</div>
+			<div class="ticket-container">
+				<div class="content">
+					<h4 class="movie-title">${Title}</h4>
+					<p class="movie-slogan">
+						${Plot}
+					</p>
+                    <p class="dbl">${imdbRating}/10</p>
+					<p class="idmb">${Runtime}</p>
+				</div>
+			</div>
+		</div>
+    `;
+  }
+}
+
+window.customElements.define("film-card", Repository);
+    </script>
+
+</body>
+
+</html>
